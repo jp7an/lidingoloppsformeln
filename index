@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Lidingöloppet 30 - Lidingöloppsformeln</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900 p-6">
+  <div class="max-w-5xl mx-auto grid gap-6">
+    <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">Lidingöloppet 30,2 – Perfekta splits</h1>
+        <p class="text-sm text-gray-600">Beräkna segment och km-tempon från din måltid. En formel av Molle Olson</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-sm">Måltid (HH:MM:SS)</label>
+        <input id="goalInput" value="02:00:00" class="px-3 py-2 rounded-2xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <button onclick="calculate()" class="px-4 py-2 rounded-2xl bg-blue-600 text-white shadow hover:bg-blue-700">Beräkna</button>
+      </div>
+    </header>
+
+    <section class="bg-white rounded-2xl shadow p-4">
+      <h2 class="text-lg font-semibold mb-3">Officiella splits</h2>
+      <div id="segmentsTable" class="overflow-x-auto"></div>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow p-4">
+      <h2 class="text-lg font-semibold mb-3">Kilometer-för-kilometer</h2>
+      <div id="kmsTable" class="overflow-x-auto"></div>
+    </section>
+  </div>
+
+<script>
+const RACE_DISTANCE = 30.2;
+const SEGMENTS = [
+  { name: "Stockby Motionsgården", km: 1.2, cum: 1.2, pct: {A:4.542,B:0.144,C:-1.688,D:-6.192} },
+  { name: "Ekholmsnäs", km: 4.7, cum: 5.9, pct: {A:5.922,B:5.922,C:5.922,D:5.922} },
+  { name: "Hustegaholm", km: 4.4, cum: 10.3, pct: {A:2.221,B:2.221,C:2.221,D:2.221} },
+  { name: "Fågelöudde", km: 4.9, cum: 15.2, pct: {A:0.294,B:0.294,C:0.294,D:0.294} },
+  { name: "Grönsta", km: 5.5, cum: 20.7, pct: {A:-1.521,B:-1.521,C:-1.521,D:-1.521} },
+  { name: "Abborrbacken", km: 4.6, cum: 25.3, pct: {A:-3.476,B:-3.476,C:-3.476,D:-3.476} },
+  { name: "Förvarning", km: 4.6, cum: 29.9, pct: {A:-5.219,B:-5.219,C:-5.219,D:-5.219} },
+  { name: "Mål", km: 0.3, cum: 30.2, pct: {A:23.299,B:23.299,C:23.299,D:23.299} },
+];
+
+function pad2(n){return n.toString().padStart(2,'0');}
+function secToHHMMSS(s){s=Math.round(s);return `${pad2(Math.floor(s/3600))}:${pad2(Math.floor((s%3600)/60))}:${pad2(s%60)}`;}
+function secToPace(s){s=Math.round(s);return `${Math.floor(s/60)}:${pad2(s%60)}`;}
+
+function parseTime(str){
+  const parts=str.split(":").map(Number);
+  if(parts.length!==3)return null;
+  return parts[0]*3600+parts[1]*60+parts[2];
+}
+
+function pickInterval(goal){
+  if(goal<=6600)return "A"; // <=1:50:00
+  if(goal<=7451)return "B"; // <=2:04:11
+  if(goal<=8315)return "C"; // <=2:18:35
+  return "D";
+}
+
+function reconcile(raw,goal){
+  const scale=goal/raw.reduce((a,b)=>a+b,0);
+  const scaled=raw.map(x=>x*scale);
+  const floors=scaled.map(Math.floor);
+  let residual=goal-floors.reduce((a,b)=>a+b,0);
+  const fracs=scaled.map((x,i)=>({i,frac:x-Math.floor(x)})).sort((a,b)=>b.frac-a.frac);
+  const result=[...floors];
+  for(let k=0;k<residual;k++){result[fracs[k%fracs.length].i]++;}
+  return result;
+}
+
+function calculate(){
+  const input=document.getElementById("goalInput").value.trim();
+  const goal=parseTime(input);
+  if(goal==null){alert("Ogiltigt format, använd HH:MM:SS");return;}
+  const paceAvg=goal/RACE_DISTANCE;
+  const interval=pickInterval(goal);
+  const raw=SEGMENTS.map(s=>paceAvg*(1-s.pct[interval]/100)*s.km);
+  const segTimes=reconcile(raw,goal);
+  let cum=0;
+  let html=`<table class='min-w-full text-sm'><thead><tr class='bg-gray-100'><th class='p-2 text-left'>Namn</th><th class='p-2 text-right'>Segment (km)</th><th class='p-2 text-right'>Ack dist</th><th class='p-2 text-right'>Tid</th><th class='p-2 text-right'>Kumulativ</th><th class='p-2 text-right'>Tempo</th></tr></thead><tbody>`;
+  SEGMENTS.forEach((s,i)=>{
+    cum+=segTimes[i];
+    html+=`<tr class='border-b'><td class='p-2'>${s.name}</td><td class='p-2 text-right'>${s.km.toFixed(1)}</td><td class='p-2 text-right'>${s.cum.toFixed(1)}</td><td class='p-2 text-right'>${secToHHMMSS(segTimes[i])}</td><td class='p-2 text-right'>${secToHHMMSS(cum)}</td><td class='p-2 text-right'>${secToPace(segTimes[i]/s.km)}/km</td></tr>`;
+  });
+  html+=`</tbody><tfoot><tr><td class='p-2 font-medium'>Summa</td><td></td><td></td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td></td></tr></tfoot></table>`;
+  document.getElementById("segmentsTable").innerHTML=html;
+
+  // km tempos
+  let kmRows=[];let pos=0;let idx=1;
+  const paces=SEGMENTS.map((s,i)=>segTimes[i]/s.km);
+  let boundaries=[];let p=0;
+  SEGMENTS.forEach((s,i)=>{boundaries.push({start:p,end:p+s.km,pace:paces[i]});p+=s.km;});
+  while(pos<RACE_DISTANCE-1e-9){
+    const next=Math.min(Math.floor(pos)+1,RACE_DISTANCE);
+    let remain=next-pos,time=0,pp=pos;
+    while(remain>1e-12){
+      const seg=boundaries.find(b=>b.start-1e-12<=pp && pp<b.end-1e-12);
+      if(!seg)break;
+      const take=Math.min(remain,seg.end-pp);
+      time+=take*seg.pace;
+      pp+=take;remain-=take;
+    }
+    kmRows.push({label:(Math.abs(next-pos-1)<1e-9)?`${idx}`:`${idx}–${RACE_DISTANCE.toFixed(1)}`,sec:time,len:next-pos});
+    pos=next;idx++;
+  }
+  const rawKm=kmRows.map(k=>k.sec);
+  const kmTimes=reconcile(rawKm,goal);
+  let kmHtml=`<table class='min-w-full text-sm'><thead><tr class='bg-gray-100'><th class='p-2 text-left'>Km</th><th class='p-2 text-right'>Tempo</th></tr></thead><tbody>`;
+  kmRows.forEach((k,i)=>{
+    kmHtml+=`<tr class='border-b'><td class='p-2'>${k.label}</td><td class='p-2 text-right'>${secToPace(kmTimes[i]/k.len)}/km</td></tr>`;
+  });
+  kmHtml+=`</tbody></table>`;
+  document.getElementById("kmsTable").innerHTML=kmHtml;
+}
+calculate();
+</script>
+</body>
+</html>
