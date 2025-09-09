@@ -9,7 +9,7 @@
   <div class="max-w-5xl mx-auto grid gap-6">
     <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Lidingöloppet 30,2 – Perfekta splits</h1>
+        <h1 class="text-2xl font-bold">Lidingöloppet 30 - Lidingöloppsformeln</h1>
         <p class="text-sm text-gray-600">Beräkna segment och km-tempon från din måltid. En formel av Molle Olson</p>
       </div>
       <div class="flex items-center gap-2">
@@ -103,9 +103,15 @@ function calculate(){
       time+=take*seg.pace;
       pp+=take;remain-=take;
     }
-    kmRows.push({label:(Math.abs(next-pos-1)<1e-9)?`${idx}`:`${idx}–${RACE_DISTANCE.toFixed(1)}`,sec:time,len:next-pos});
-    pos=next;idx++;
-  }
+   const isFullKm = Math.abs(next - pos - 1) < 1e-9;
+let label;
+if (isFullKm) {
+  label = `${idx}`;
+} else {
+  label = `30–Mål`;
+}
+kmRows.push({ label, sec: time, len: next - pos });
+
   const rawKm=kmRows.map(k=>k.sec);
   const kmTimes=reconcile(rawKm,goal);
   let kmHtml=`<table class='min-w-full text-sm'><thead><tr class='bg-gray-100'><th class='p-2 text-left'>Km</th><th class='p-2 text-right'>Tempo</th></tr></thead><tbody>`;
