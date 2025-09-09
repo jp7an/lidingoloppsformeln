@@ -2,15 +2,15 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <title>Lidingöloppsformeln</title>
+  <title>Lidingöloppet 30,2 – Perfekta splits</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 p-6">
   <div class="max-w-5xl mx-auto grid gap-6">
     <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Lidingöloppet 30 - Lidingöloppsformeln</h1>
-        <p class="text-sm text-gray-600">Beräkna segment och km-tempon från din måltid. En formel av Molle Olson.</p>
+        <h1 class="text-2xl font-bold">Lidingöloppet 30,2 – Perfekta splits</h1>
+        <p class="text-sm text-gray-600">Beräkna segment och km-tempon från din måltid. Summor avstämda till exakt måltid – aldrig över.</p>
       </div>
       <div class="flex items-center gap-2">
         <label class="text-sm">Måltid (HH:MM:SS)</label>
@@ -85,7 +85,8 @@ function calculate(){
     cum+=segTimes[i];
     html+=`<tr class='border-b'><td class='p-2'>${s.name}</td><td class='p-2 text-right'>${s.km.toFixed(1)}</td><td class='p-2 text-right'>${s.cum.toFixed(1)}</td><td class='p-2 text-right'>${secToHHMMSS(segTimes[i])}</td><td class='p-2 text-right'>${secToHHMMSS(cum)}</td><td class='p-2 text-right'>${secToPace(segTimes[i]/s.km)}/km</td></tr>`;
   });
-  html+=`</tbody><tfoot><tr><td class='p-2 font-medium'>Summa</td><td></td><td></td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td></td></tr></tfoot></table>`;
+  // show average pace to the right of total time (Tempo column, footer row)
+  html+=`</tbody><tfoot><tr><td class='p-2 font-medium'>Summa</td><td></td><td></td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td class='p-2 text-right font-medium'>${secToHHMMSS(goal)}</td><td class='p-2 text-right font-medium'>${secToPace(paceAvg)}/km</td></tr></tfoot></table>`;
   document.getElementById("segmentsTable").innerHTML=html;
 
   // km tempos
@@ -105,11 +106,7 @@ function calculate(){
     }
     const isFullKm = Math.abs(next - pos - 1) < 1e-9;
     let label;
-    if (isFullKm) {
-      label = `${idx}`;
-    } else {
-      label = `30–Mål`;
-    }
+    if (isFullKm) { label = `${idx}`; } else { label = `30–Mål`; }
     kmRows.push({label,sec:time,len:next-pos});
     pos=next;idx++;
   }
