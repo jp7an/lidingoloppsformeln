@@ -27,7 +27,7 @@
 
     <section class="bg-white rounded-2xl shadow p-4">
       <h2 class="text-lg font-semibold mb-3">Kilometer-för-kilometer</h2>
-      <p class="text-xs text-gray-500 mb-2">Km-splittarna är interpolerade från segmenten så att totalen stämmer med måltiden.</p>
+      <p class="text-xs text-gray-500 mb-2">Km-splittarna är interpolerade från segmenten så att totalen stämmer med måltiden. Splittarna nedan är ett Tänk på att varje kilometer på Lidingöloppet är unikt och </p>
       <div id="kmsTable" class="overflow-x-auto"></div>
     </section>
   </div>
@@ -137,6 +137,18 @@ function calculate(){
     kmHtml += `<tr class='border-b'><td class='p-1'>${k.label}</td><td class='p-1'>${secToPace(kmTimes[i]/k.len)}/km</td></tr>`;
   });
   kmHtml += `</tbody></table></div>`;
+      </div> <!-- här slutar dina tabeller -->
+
+    <div class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-sm text-gray-700 rounded-lg">
+      <strong>Observera:</strong> Km-splittarna är framräknade genom att jämnt fördela farten mellan
+      de officiella mellantiderna. De speglar alltså inte hur löpare faktiskt sprungit varje enskild
+      kilometer, utan är en interpolerad uppskattning för att ge en känsla för tempot längs banan. 
+      Variationer i fart inom ett segment (t.ex. uppförsbacke följt av nedför) syns inte i dessa siffror.
+    </div>
+
+  </body>
+</html>
+
   document.getElementById("kmsTable").innerHTML=kmHtml;
 }
 calculate();
